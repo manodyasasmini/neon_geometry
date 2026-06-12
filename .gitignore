@@ -1,0 +1,14 @@
+# --- Code::Blocks Build Outputs ---
+bin/
+obj/
+
+# --- User-Specific Workspace Configurations ---
+*.depend
+*.layout
+
+# --- General Compiled Binaries & OS Trash ---
+*.exe
+*.o
+*.out
+.DS_Store
+Thumbs.db
