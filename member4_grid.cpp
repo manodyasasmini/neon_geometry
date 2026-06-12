@@ -2,43 +2,37 @@
 #include "game_engine.h"
 #include <cmath>
 
-namespace Member4_Grid
-{
-    float heartbeat = 1.0f;
+namespace Member4_Grid {
     float pulseTime = 0.0f;
+    float scaleMod = 1.0f;
 
-    void update()
-    {
+    void update() {
         pulseTime += 0.03f;
-        heartbeat = 1.0f + 0.04f * sin(pulseTime);
+        scaleMod = 1.0f + 0.05f * sin(pulseTime);
     }
 
-    void draw()
-    {
+    void draw() {
         glPushMatrix();
-
-        // Custom shearing matrix mapping applied directly to current matrix stack
-        float shearX = -SharedState::player.x * 0.1f;
-        float shearY = -SharedState::player.y * 0.1f;
+        float shearX = -SharedState::playerX * 0.08f;
         float shearMatrix[16] = {
-            1.0f, shearY, 0.0f, 0.0f,
-            shearX, 1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f};
+            1.0f,   0.0f,   0.0f, 0.0f,
+            shearX, 1.0f,   0.0f, 0.0f,
+            0.0f,   0.0f,   1.0f, 0.0f,
+            0.0f,   0.0f,   0.0f, 1.0f
+        };
         glMultMatrixf(shearMatrix);
-        glScalef(heartbeat, heartbeat, 1.0f);
+        glScalef(scaleMod, scaleMod, 1.0f);
 
-        glColor3f(0.0f, 0.15f, 0.4f);
-        glLineWidth(1.0f);
-        glBegin(GL_LINES);
-        for (float i = -1.0f; i <= 1.0f; i += 0.2f)
-        {
-            glVertex2f(i, -1.0f);
-            glVertex2f(i, 1.0f);
-            glVertex2f(-1.0f, i);
-            glVertex2f(1.0f, i);
+        glColor3f(0, 0.3f + (SharedState::level * 0.1f), 0.7f - (SharedState::level * 0.15f));
+        for (int r = 1; r <= 8; r++) {
+            float radius = r * 0.1f;
+            glBegin(GL_LINE_LOOP);
+            for (int i = 0; i < 60; i++) {
+                float a = i * 6.28318f / 60;
+                glVertex2f(cos(a) * radius, sin(a) * radius);
+            }
+            glEnd();
         }
-        glEnd();
         glPopMatrix();
     }
 }

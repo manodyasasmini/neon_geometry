@@ -3,54 +3,49 @@
 #include <cmath>
 #include <cstdlib>
 
-namespace Member2_Swarm
-{
-    std::vector<Enemy> pool;
+namespace Member2_Swarm {
+    void spawnWave() {
+        SharedState::enemies.clear();
+        int count = SharedState::wave * (5 + SharedState::level);
+        for (int i = 0; i < count; i++) {
+            Enemy e;
+            e.x = (rand() % 2 == 0 ? 1.2f : -1.2f);
+            e.y = ((rand() % 200) / 100.0f) - 1.0f;
 
-    void spawn()
-    {
-        Enemy e;
-        e.x = (rand() % 2 == 0) ? 1.1f : -1.1f;
-        e.y = ((rand() % 200) / 100.0f) - 1.0f;
-        e.speed = 0.002f;
-        e.active = true;
-        pool.push_back(e);
-    }
-
-    void update()
-    {
-        if (pool.size() < 4)
-            spawn();
-
-        for (auto &e : pool)
-        {
-            if (!e.active)
-                continue;
-            float dx = SharedState::player.x - e.x;
-            float dy = SharedState::player.y - e.y;
-            float len = sqrt(dx * dx + dy * dy);
-            if (len > 0.01f)
-            {
-                e.x += (dx / len) * e.speed;
-                e.y += (dy / len) * e.speed;
+            if (rand() % 100 < 20) {
+                e.type = TANK;
+                e.hp = 3;
+                e.speed = 0.001f + (SharedState::level * 0.0005f);
+            } else {
+                e.type = SWARM;
+                e.hp = 1;
+                e.speed = 0.003f + (SharedState::level * 0.001f);
             }
+            SharedState::enemies.push_back(e);
         }
     }
 
-    void draw()
-    {
-        glColor3f(1.0f, 0.2f, 0.2f);
-        for (const auto &e : pool)
-        {
-            if (!e.active)
-                continue;
+    void update() {
+        for (auto& e : SharedState::enemies) {
+            if (e.x > 2) continue;
+            float dx = SharedState::playerX - e.x, dy = SharedState::playerY - e.y;
+            float len = sqrt(dx * dx + dy * dy) + 0.001f;
+            e.x += (dx / len) * e.speed; e.y += (dy / len) * e.speed;
+        }
+    }
+
+    void draw() {
+        for (auto& e : SharedState::enemies) {
+            if (e.x > 2) continue;
+            if (e.type == TANK) glColor3f(1.0f, 0.0f, 0.0f);
+            else glColor3f(1.0f, 0.5f, 0.0f);
+
+            float s = (e.type == TANK) ? 0.08f : 0.04f;
             glPushMatrix();
             glTranslatef(e.x, e.y, 0.0f);
             glBegin(GL_QUADS);
-            glVertex2f(-0.03f, -0.03f);
-            glVertex2f(0.03f, -0.03f);
-            glVertex2f(0.03f, 0.03f);
-            glVertex2f(-0.03f, 0.03f);
+            glVertex2f(-s/2, -s/2); glVertex2f(s/2, -s/2);
+            glVertex2f(s/2, s/2);   glVertex2f(-s/2, s/2);
             glEnd();
             glPopMatrix();
         }

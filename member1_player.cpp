@@ -2,55 +2,45 @@
 #include "game_engine.h"
 #include <cmath>
 
-namespace Member1_Player
-{
-    float x = 0.0f, y = 0.0f;
-    float angle = 0.0f;
+namespace Member1_Player {
     float thrusterScale = 1.0f;
     float pulseDir = 0.05f;
 
-    void update()
-    {
-        // Calculate orientation looking toward crosshair
-        angle = atan2(SharedState::mouseY - y, SharedState::mouseX - x) * 180.0f / 3.14159f - 90.0f;
+    void update() {
+        if (SharedState::gameState == PLAYING) {
+            SharedState::playerAngle = atan2(SharedState::mouseGL_Y - SharedState::playerY, SharedState::mouseGL_X - SharedState::playerX) * 180.0f / 3.14159f - 90.0f;
+        }
 
-        // Thruster oscillation
         thrusterScale += pulseDir;
-        if (thrusterScale > 1.5f || thrusterScale < 0.8f)
-            pulseDir = -pulseDir;
-
-        // Broadcast positions to other engine modules
-        SharedState::player.x = x;
-        SharedState::player.y = y;
-        SharedState::player.angle = angle;
+        if (thrusterScale > 1.5f || thrusterScale < 0.8f) pulseDir = -pulseDir;
     }
 
-    void draw()
-    {
+    void draw() {
         glPushMatrix();
-        glTranslatef(x, y, 0.0f);
-        glRotatef(angle, 0.0f, 0.0f, 1.0f);
+        glTranslatef(SharedState::playerX, SharedState::playerY, 0);
+        glRotatef(SharedState::playerAngle, 0, 0, 1);
 
-        // Core hull
-        glColor3f(0.0f, 1.0f, 1.0f);
+        if (SharedState::invulnTimer > 0 && SharedState::invulnTimer % 10 < 5) glColor3f(1.0f, 0.0f, 0.0f);
+        else glColor3f(0.0f, 1.0f, 1.0f);
+
         glBegin(GL_TRIANGLES);
-        glVertex2f(0.0f, 0.05f);
+        glVertex2f(0, 0.05f);
         glVertex2f(-0.03f, -0.03f);
         glVertex2f(0.03f, -0.03f);
         glEnd();
 
-        // Localized matrix scaling for dynamic exhaust tail
-        glPushMatrix();
-        glTranslatef(0.0f, -0.03f, 0.0f);
-        glScalef(1.0f, thrusterScale, 1.0f);
-        glColor3f(1.0f, 0.5f, 0.0f);
-        glBegin(GL_TRIANGLES);
-        glVertex2f(0.0f, 0.0f);
-        glVertex2f(-0.015f, -0.03f);
-        glVertex2f(0.015f, -0.03f);
-        glEnd();
-        glPopMatrix();
-
+        if (SharedState::isDashing) {
+            glPushMatrix();
+            glTranslatef(0.0f, -0.03f, 0.0f);
+            glScalef(1.0f, thrusterScale, 1.0f);
+            glColor3f(1.0f, 1.0f, 1.0f);
+            glBegin(GL_TRIANGLES);
+            glVertex2f(0, 0.0f);
+            glVertex2f(-0.02f, -0.05f);
+            glVertex2f(0.02f, -0.05f);
+            glEnd();
+            glPopMatrix();
+        }
         glPopMatrix();
     }
 }

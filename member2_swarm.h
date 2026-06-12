@@ -1,20 +1,8 @@
 #ifndef SWARM_H
 #define SWARM_H
 
-
-#include <vector>
-
-namespace Member2_Swarm
-{
-    struct Enemy
-    {
-        float x, y;
-        float speed;
-        bool active;
-    };
-    extern std::vector<Enemy> pool;
-
-    void spawn();
+namespace Member2_Swarm {
+    void spawnWave();
     void update();
     void draw();
 }

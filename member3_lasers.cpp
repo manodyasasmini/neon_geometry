@@ -3,73 +3,50 @@
 #include <cmath>
 #include <algorithm>
 
-namespace Member3_Lasers
-{
-    std::vector<Laser> pool;
-
-    // Academic Implementation: DDA Line Drawing Algorithm rasterization
-    void drawCustomLine(float x0, float y0, float x1, float y1)
-    {
-        float dx = x1 - x0;
-        float dy = y1 - y0;
-        float steps = std::max(std::abs(dx), std::abs(dy)) * 100.0f;
-        if (steps < 1.0f)
-            steps = 1.0f;
-
-        float xInc = dx / steps;
-        float yInc = dy / steps;
-        float cx = x0;
-        float cy = y0;
+namespace Member3_Lasers {
+    void drawDDA_Line(float x0, float y0, float x1, float y1) {
+        float dx = x1 - x0, dy = y1 - y0;
+        float steps = std::max(std::abs(dx), std::abs(dy)) * 120.0f;
+        if (steps < 1.0f) steps = 1.0f;
+        float xInc = dx / steps, yInc = dy / steps;
+        float cx = x0, cy = y0;
 
         glBegin(GL_POINTS);
-        for (int i = 0; i <= steps; i++)
-        {
+        for (int i = 0; i <= steps; i++) {
             glVertex2f(cx, cy);
-            cx += xInc;
-            cy += yInc;
+            cx += xInc; cy += yInc;
         }
         glEnd();
     }
 
-    void fire()
-    {
-        float targetDx = SharedState::mouseX - SharedState::player.x;
-        float targetDy = SharedState::mouseY - SharedState::player.y;
-        float len = sqrt(targetDx * targetDx + targetDy * targetDy);
-        if (len > 0)
-        {
-            Laser l;
-            l.x = SharedState::player.x;
-            l.y = SharedState::player.y;
-            l.dx = (targetDx / len) * 0.04f;
-            l.dy = (targetDy / len) * 0.04f;
-            l.active = true;
-            pool.push_back(l);
+    void fire() {
+        float dx = SharedState::mouseGL_X - SharedState::playerX;
+        float dy = SharedState::mouseGL_Y - SharedState::playerY;
+        float len = sqrt(dx * dx + dy * dy);
+        if (len > 0) {
+            Projectile p; p.x = SharedState::playerX; p.y = SharedState::playerY;
+            p.dx = (dx / len) * 0.1f; p.dy = (dy / len) * 0.1f;
+            p.active = true; p.isEnemyWeapon = false;
+            SharedState::projectiles.push_back(p);
         }
     }
 
-    void update()
-    {
-        for (auto &l : pool)
-        {
-            if (!l.active)
-                continue;
-            l.x += l.dx;
-            l.y += l.dy;
-            if (std::abs(l.x) > 1.2f || std::abs(l.y) > 1.2f)
-                l.active = false;
+    void update() {
+        for (auto& p : SharedState::projectiles) {
+            if (!p.active) continue;
+            p.x += p.dx; p.y += p.dy;
+            if (p.x < -1.1f || p.x > 1.1f || p.y < -1.1f || p.y > 1.1f) p.active = false;
         }
     }
 
-    void draw()
-    {
-        glColor3f(1.0f, 1.0f, 0.0f);
-        glPointSize(3.0f);
-        for (const auto &l : pool)
-        {
-            if (!l.active)
-                continue;
-            drawCustomLine(l.x, l.y, l.x - l.dx * 1.5f, l.y - l.dy * 1.5f);
+    void draw() {
+        glPointSize(2.5f);
+        for (const auto& p : projectiles) {
+            if (p.active) {
+                if (p.isEnemyWeapon) glColor3f(1.0f, 0.0f, 1.0f);
+                else glColor3f(1.0f, 1.0f, 0.0f);
+                drawDDA_Line(p.x, p.y, p.x - p.dx * 0.5f, p.y - p.dy * 0.5f);
+            }
         }
         glPointSize(1.0f);
     }
