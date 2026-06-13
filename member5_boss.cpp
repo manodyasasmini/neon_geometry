@@ -9,7 +9,7 @@ namespace Member5_Boss {
     float shearX = 0.0f, shearY = 0.0f;
     float scaleX = 1.0f, scaleY = 1.0f;
     float spikes[8] = {1, 1, 1, 1, 1, 1, 1, 1};
-
+}
  // CUSTOM SHEAR MATRIX
     void applyShear(float shx, float shy) {
         float m[16] = {
@@ -87,7 +87,68 @@ namespace Member5_Boss {
             }
         }
     }
+ // DRAW LOGIC (Anomaly Boss Geometry)
+    void draw() {
+        glPushMatrix();
+            glTranslatef(SharedState::bossX, SharedState::bossY, 0.0f);
 
+            //  JAGGED SPIKES (each scaled independently)
+            for (int i = 0; i < 8; i++) {
+                glPushMatrix();
+                    glRotatef(i * 45.0f + localTime * 15.0f, 0, 0, 1);
+                    glTranslatef(0.0f, 0.18f, 0.0f);
+
+                    // Non-uniform scaling per spike - makes them feel unstable
+                    glScalef(1.0f + shearX * 0.5f, spikes[i], 1.0f);
+
+                    glColor3f(1.0f, 0.3f, 0.6f);
+                    glBegin(GL_TRIANGLES);
+                        glVertex2f(-0.028f, 0.0f);
+                        glVertex2f( 0.028f, 0.0f);
+                        glVertex2f( 0.0f,   0.10f);
+                    glEnd();
+
+                    // Spike outline glow
+                    glColor3f(1.0f, 0.7f, 0.9f);
+                    glLineWidth(1.5f);
+                    glBegin(GL_LINE_LOOP);
+                        glVertex2f(-0.028f, 0.0f);
+                        glVertex2f( 0.028f, 0.0f);
+                        glVertex2f( 0.0f,   0.10f);
+                    glEnd();
+                glPopMatrix();
+            }
+
+            // MAIN CORE - THE STAR OF THE SHOW
+            glPushMatrix();
+                glRotatef(rotation, 0, 0, 1);
+
+                // STEP 1: Non-uniform scaling (X and Y differ -> stretches)
+                glScalef(scaleX, scaleY, 1.0f);
+
+                // STEP 2: SHEARING - the key transformation
+                applyShear(shearX, shearY);
+
+                // The square body
+                drawSquare(0.12f, 0.85f, 0.1f, 0.4f);
+                drawSquareOutline(0.12f, 1.0f, 0.6f, 0.9f, 2.5f);
+
+                // Inner pulsing core
+                float corePulse = 0.5f + 0.5f * sin(localTime * 6.0f);
+                drawSquare(0.05f, 1.0f, 1.0f, 1.0f);
+
+                // Cross-hairs inside (extra detail showing shear effect)
+                glColor3f(1.0f, 1.0f, 1.0f);
+                glLineWidth(1.5f);
+                glBegin(GL_LINES);
+                    glVertex2f(-0.12f, 0.0f); glVertex2f(0.12f, 0.0f);
+                    glVertex2f(0.0f, -0.12f); glVertex2f(0.0f, 0.12f);
+                glEnd();
+            glPopMatrix();
+
+        glPopMatrix();
+    }
+}
 
 
     }
