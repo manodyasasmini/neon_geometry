@@ -61,7 +61,7 @@ namespace Member5_Boss {
  // UPDATE LOGIC
     void update() {
         if (SharedState::bossActive) {
-            // Update internal timer for animations
+            //? Update internal timer for animations
             localTime += 0.016f;
 
             // Boss Movement (from original project)
