@@ -9,8 +9,8 @@ namespace Member5_Boss {
     float shearX = 0.0f, shearY = 0.0f;
     float scaleX = 1.0f, scaleY = 1.0f;
     float spikes[8] = {1, 1, 1, 1, 1, 1, 1, 1};
-}
- // CUSTOM SHEAR MATRIX
+
+    // CUSTOM SHEAR MATRIX
     void applyShear(float shx, float shy) {
         float m[16] = {
             1.0f, shy,  0.0f, 0.0f,   // column 1
@@ -149,7 +149,3 @@ namespace Member5_Boss {
         glPopMatrix();
     }
 }
-
-
-    }
-
