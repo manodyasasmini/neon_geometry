@@ -43,7 +43,7 @@ void applyScreenShake() {
 
 void startNextLevel() {
     SharedState::level++; SharedState::wave = 1;
-    SharedState::bossActive = true;
+    SharedState::bossActive = (SharedState::level >= 3);
     SharedState::bossMaxHP = 150.0f + (SharedState::level * 50.0f);
     SharedState::bossHP = SharedState::bossMaxHP;
     SharedState::playerX = 0; SharedState::playerY = 0;
@@ -54,7 +54,7 @@ void startNextLevel() {
 
 void restartGame() {
     SharedState::score = 0; SharedState::lives = 5; SharedState::level = 1; SharedState::wave = 1;
-    SharedState::bossActive = true; SharedState::bossMaxHP = 150.0f; SharedState::bossHP = 150.0f;
+    SharedState::bossActive = (SharedState::level >= 3); SharedState::bossMaxHP = 150.0f; SharedState::bossHP = 150.0f;
     SharedState::playerX = 0; SharedState::playerY = 0;
     SharedState::projectiles.clear(); SharedState::enemies.clear();
     SharedState::gameState = PLAYING; bossWaveTimer = 0;
@@ -203,21 +203,24 @@ void update(int) {
         for (auto& e : SharedState::enemies) if (e.x < 2) cleared = false;
         
         bossWaveTimer++;
-        if (SharedState::wave == 1) {
-            // Wave 1: 3 times. Active 180 frames (~3s), inactive 180 frames (~3s)
-            SharedState::bossActive = (bossWaveTimer < 1080) && ((bossWaveTimer % 360) < 180);
-        } else if (SharedState::wave == 2) {
-            // Wave 2: 3 times slightly much time. Active 360 frames (~6s), inactive 180 frames (~3s)
-            SharedState::bossActive = (bossWaveTimer < 1620) && ((bossWaveTimer % 540) < 360);
-        } else if (SharedState::wave == 3) {
+        if (SharedState::level >= 3) {
             SharedState::bossActive = true;
-            if (SharedState::bossHP > 0) cleared = false; // Wave 3 doesn't clear until boss dies
+            if (SharedState::wave == 3 && SharedState::bossHP > 0) {
+                cleared = false; // Wave 3 doesn't clear until boss dies
+            }
+        } else {
+            SharedState::bossActive = false;
         }
 
         if (cleared && SharedState::gameState == PLAYING) {
-            SharedState::wave++;
-            bossWaveTimer = 0; // Reset timer for next wave
-            if (SharedState::wave <= 3) Member2_Swarm::spawnWave();
+            if (SharedState::level < 3 && SharedState::wave == 3) {
+                SharedState::gameState = LEVEL_TRANSITION;
+                SharedState::invulnTimer = 0;
+            } else {
+                SharedState::wave++;
+                bossWaveTimer = 0; // Reset timer for next wave
+                if (SharedState::wave <= 3) Member2_Swarm::spawnWave();
+            }
         }
     }
     glutPostRedisplay(); glutTimerFunc(16, update, 0);
@@ -242,10 +245,10 @@ void keyboard(unsigned char key, int, int) {
         if (key == 27) exit(0); return;
     }
     float s = 0.04f;
-    if (key == 'w') SharedState::playerY += s;
-    if (key == 's') SharedState::playerY -= s;
-    if (key == 'a') SharedState::playerX -= s;
-    if (key == 'd') SharedState::playerX += s;
+    if (key == 'w' || key == 'W') SharedState::playerY += s;
+    if (key == 's' || key == 'S') SharedState::playerY -= s;
+    if (key == 'a' || key == 'A') SharedState::playerX -= s;
+    if (key == 'd' || key == 'D') SharedState::playerX += s;
 
     if (key == ' ' && !SharedState::isDashing) {
         SharedState::isDashing = true; SharedState::dashTimer = 10;
@@ -253,6 +256,15 @@ void keyboard(unsigned char key, int, int) {
         float len = sqrt(dx*dx + dy*dy);
         if (len > 0) { SharedState::dashDx = (dx/len) * 0.08f; SharedState::dashDy = (dy/len) * 0.08f; }
     }
+}
+
+void specialKeys(int key, int, int) {
+    if (SharedState::gameState != PLAYING) return;
+    float s = 0.04f;
+    if (key == GLUT_KEY_UP) SharedState::playerY += s;
+    if (key == GLUT_KEY_DOWN) SharedState::playerY -= s;
+    if (key == GLUT_KEY_LEFT) SharedState::playerX -= s;
+    if (key == GLUT_KEY_RIGHT) SharedState::playerX += s;
 }
 
 void reshape(int w, int h) { SharedState::winWidth = w; SharedState::winHeight = h; glViewport(0, 0, w, h); }
@@ -264,7 +276,7 @@ int main(int argc, char** argv) {
     glutCreateWindow("Neon Geometry - Master Build");
     glClearColor(0.02f, 0.02f, 0.05f, 1);
     glutDisplayFunc(display); glutReshapeFunc(reshape);
-    glutKeyboardFunc(keyboard); glutMouseFunc(mouseClick);
+    glutKeyboardFunc(keyboard); glutSpecialFunc(specialKeys); glutMouseFunc(mouseClick);
     glutPassiveMotionFunc(passiveMouse); glutMotionFunc(activeMouse);
     glutTimerFunc(16, update, 0);
     glutMainLoop();

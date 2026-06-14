@@ -135,7 +135,7 @@ namespace Member5_Boss {
 
                 // Inner pulsing core
                 float corePulse = 0.5f + 0.5f * sin(localTime * 6.0f);
-                drawSquare(0.05f, 1.0f, 1.0f, 1.0f);
+                drawSquare(0.02f + 0.03f * corePulse, 1.0f, 1.0f, 1.0f);
 
                 // Cross-hairs inside (extra detail showing shear effect)
                 glColor3f(1.0f, 1.0f, 1.0f);
