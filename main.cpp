@@ -15,6 +15,8 @@
 #include "member6_particles.h"
 
 int bossWaveTimer = 0;
+bool keyState[256] = { false };
+bool specialKeyState[256] = { false };
 
 void drawText(float x, float y, const std::string& s) {
     glRasterPos2f(x, y);
@@ -49,6 +51,8 @@ void startNextLevel() {
     SharedState::playerX = 0; SharedState::playerY = 0;
     SharedState::projectiles.clear(); SharedState::enemies.clear();
     SharedState::gameState = PLAYING; bossWaveTimer = 0;
+    std::fill(std::begin(keyState), std::end(keyState), false);
+    std::fill(std::begin(specialKeyState), std::end(specialKeyState), false);
     Member2_Swarm::spawnWave();
 }
 
@@ -58,6 +62,8 @@ void restartGame() {
     SharedState::playerX = 0; SharedState::playerY = 0;
     SharedState::projectiles.clear(); SharedState::enemies.clear();
     SharedState::gameState = PLAYING; bossWaveTimer = 0;
+    std::fill(std::begin(keyState), std::end(keyState), false);
+    std::fill(std::begin(specialKeyState), std::end(specialKeyState), false);
     Member2_Swarm::spawnWave();
 }
 
@@ -130,6 +136,13 @@ void update(int) {
     }
     else if (SharedState::gameState == PLAYING) {
         if (SharedState::invulnTimer > 0) SharedState::invulnTimer--;
+
+        // Smooth continuous movement using registered key states
+        float moveSpeed = 0.015f;
+        if (keyState['w'] || specialKeyState[GLUT_KEY_UP]) SharedState::playerY += moveSpeed;
+        if (keyState['s'] || specialKeyState[GLUT_KEY_DOWN]) SharedState::playerY -= moveSpeed;
+        if (keyState['a'] || specialKeyState[GLUT_KEY_LEFT]) SharedState::playerX -= moveSpeed;
+        if (keyState['d'] || specialKeyState[GLUT_KEY_RIGHT]) SharedState::playerX += moveSpeed;
 
         if (SharedState::isDashing) {
             SharedState::playerX += SharedState::dashDx; SharedState::playerY += SharedState::dashDy;
@@ -244,13 +257,11 @@ void keyboard(unsigned char key, int, int) {
         if (key == 'r' || key == 'R') restartGame();
         if (key == 27) exit(0); return;
     }
-    float s = 0.04f;
-    if (key == 'w' || key == 'W') SharedState::playerY += s;
-    if (key == 's' || key == 'S') SharedState::playerY -= s;
-    if (key == 'a' || key == 'A') SharedState::playerX -= s;
-    if (key == 'd' || key == 'D') SharedState::playerX += s;
+    
+    unsigned char lowerKey = (key >= 'A' && key <= 'Z') ? (key - 'A' + 'a') : key;
+    keyState[lowerKey] = true;
 
-    if (key == ' ' && !SharedState::isDashing) {
+    if (key == ' ' && !SharedState::isDashing && SharedState::gameState == PLAYING) {
         SharedState::isDashing = true; SharedState::dashTimer = 10;
         float dx = SharedState::mouseGL_X - SharedState::playerX, dy = SharedState::mouseGL_Y - SharedState::playerY;
         float len = sqrt(dx*dx + dy*dy);
@@ -258,13 +269,21 @@ void keyboard(unsigned char key, int, int) {
     }
 }
 
+void keyboardUp(unsigned char key, int, int) {
+    unsigned char lowerKey = (key >= 'A' && key <= 'Z') ? (key - 'A' + 'a') : key;
+    keyState[lowerKey] = false;
+}
+
 void specialKeys(int key, int, int) {
-    if (SharedState::gameState != PLAYING) return;
-    float s = 0.04f;
-    if (key == GLUT_KEY_UP) SharedState::playerY += s;
-    if (key == GLUT_KEY_DOWN) SharedState::playerY -= s;
-    if (key == GLUT_KEY_LEFT) SharedState::playerX -= s;
-    if (key == GLUT_KEY_RIGHT) SharedState::playerX += s;
+    if (key >= 0 && key < 256) {
+        specialKeyState[key] = true;
+    }
+}
+
+void specialKeysUp(int key, int, int) {
+    if (key >= 0 && key < 256) {
+        specialKeyState[key] = false;
+    }
 }
 
 void reshape(int w, int h) { SharedState::winWidth = w; SharedState::winHeight = h; glViewport(0, 0, w, h); }
@@ -276,7 +295,9 @@ int main(int argc, char** argv) {
     glutCreateWindow("Neon Geometry - Master Build");
     glClearColor(0.02f, 0.02f, 0.05f, 1);
     glutDisplayFunc(display); glutReshapeFunc(reshape);
-    glutKeyboardFunc(keyboard); glutSpecialFunc(specialKeys); glutMouseFunc(mouseClick);
+    glutKeyboardFunc(keyboard); glutKeyboardUpFunc(keyboardUp);
+    glutSpecialFunc(specialKeys); glutSpecialUpFunc(specialKeysUp);
+    glutMouseFunc(mouseClick);
     glutPassiveMotionFunc(passiveMouse); glutMotionFunc(activeMouse);
     glutTimerFunc(16, update, 0);
     glutMainLoop();

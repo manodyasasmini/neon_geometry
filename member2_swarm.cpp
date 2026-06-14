@@ -15,11 +15,11 @@ namespace Member2_Swarm {
             if (rand() % 100 < 20) {
                 e.type = TANK;
                 e.hp = 3;
-                e.speed = 0.001f + (SharedState::level * 0.0005f);
+                e.speed = 0.0006f + (SharedState::level * 0.0002f);
             } else {
                 e.type = SWARM;
                 e.hp = 1;
-                e.speed = 0.003f + (SharedState::level * 0.001f);
+                e.speed = 0.0016f + (SharedState::level * 0.0004f);
             }
             SharedState::enemies.push_back(e);
         }
