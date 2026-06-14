@@ -1,8 +1,7 @@
-#ifndef PARTICLES_H
-#define PARTICLES_H
+#ifndef MEMBER6_PARTICLES_H
+#define MEMBER6_PARTICLES_H
 
 namespace Member6_Particles {
-    struct Burst { float x, y, life; };
     void trigger(float x, float y);
     void update();
     void draw();
