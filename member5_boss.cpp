@@ -55,7 +55,7 @@ namespace Member5_Boss {
             p.active = true; p.isEnemyWeapon = true;
             SharedState::projectiles.push_back(p);
         }
-
+    }
 
 
  // UPDATE LOGIC

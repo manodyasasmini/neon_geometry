@@ -14,6 +14,8 @@
 #include "member5_boss.h"
 #include "member6_particles.h"
 
+int bossWaveTimer = 0;
+
 void drawText(float x, float y, const std::string& s) {
     glRasterPos2f(x, y);
     for (char c : s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
@@ -41,21 +43,21 @@ void applyScreenShake() {
 
 void startNextLevel() {
     SharedState::level++; SharedState::wave = 1;
-    SharedState::bossActive = false;
+    SharedState::bossActive = true;
     SharedState::bossMaxHP = 150.0f + (SharedState::level * 50.0f);
     SharedState::bossHP = SharedState::bossMaxHP;
     SharedState::playerX = 0; SharedState::playerY = 0;
     SharedState::projectiles.clear(); SharedState::enemies.clear();
-    SharedState::gameState = PLAYING;
+    SharedState::gameState = PLAYING; bossWaveTimer = 0;
     Member2_Swarm::spawnWave();
 }
 
 void restartGame() {
     SharedState::score = 0; SharedState::lives = 5; SharedState::level = 1; SharedState::wave = 1;
-    SharedState::bossActive = false; SharedState::bossMaxHP = 150.0f; SharedState::bossHP = 150.0f;
+    SharedState::bossActive = true; SharedState::bossMaxHP = 150.0f; SharedState::bossHP = 150.0f;
     SharedState::playerX = 0; SharedState::playerY = 0;
     SharedState::projectiles.clear(); SharedState::enemies.clear();
-    SharedState::gameState = PLAYING;
+    SharedState::gameState = PLAYING; bossWaveTimer = 0;
     Member2_Swarm::spawnWave();
 }
 
@@ -199,10 +201,23 @@ void update(int) {
 
         bool cleared = true;
         for (auto& e : SharedState::enemies) if (e.x < 2) cleared = false;
-        if (cleared && !SharedState::bossActive && SharedState::gameState == PLAYING) {
+        
+        bossWaveTimer++;
+        if (SharedState::wave == 1) {
+            // Wave 1: 3 times. Active 180 frames (~3s), inactive 180 frames (~3s)
+            SharedState::bossActive = (bossWaveTimer < 1080) && ((bossWaveTimer % 360) < 180);
+        } else if (SharedState::wave == 2) {
+            // Wave 2: 3 times slightly much time. Active 360 frames (~6s), inactive 180 frames (~3s)
+            SharedState::bossActive = (bossWaveTimer < 1620) && ((bossWaveTimer % 540) < 360);
+        } else if (SharedState::wave == 3) {
+            SharedState::bossActive = true;
+            if (SharedState::bossHP > 0) cleared = false; // Wave 3 doesn't clear until boss dies
+        }
+
+        if (cleared && SharedState::gameState == PLAYING) {
             SharedState::wave++;
+            bossWaveTimer = 0; // Reset timer for next wave
             if (SharedState::wave <= 3) Member2_Swarm::spawnWave();
-            else SharedState::bossActive = true;
         }
     }
     glutPostRedisplay(); glutTimerFunc(16, update, 0);

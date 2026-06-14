@@ -2,6 +2,7 @@
 #include "game_engine.h"
 #include <vector>
 #include <cstdlib>
+#include <algorithm>
 
 namespace Member6_Particles {
     std::vector<Burst> activeBursts;
