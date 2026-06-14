@@ -1,14 +1,38 @@
 # --- Code::Blocks Build Outputs ---
+# Blocks compilation artifacts directory
 bin/
 obj/
 
 # --- User-Specific Workspace Configurations ---
+# Keeps track of personal file layout and dependencies local to your machine
 *.depend
 *.layout
 
-# --- General Compiled Binaries & OS Trash ---
-*.exe
+# --- Integrated Development Environments (IDEs) ---
+# Ignores local VS Code or CLion configuration folders if used by team members
+.vscode/
+.idea/
+
+# --- General Compiled Binaries & Executables ---
+# Prevents built applications and raw compiled object files from being tracked
 *.o
+*.obj
 *.out
+*.app
+
+# --- Dynamic Link Libraries & Static Libs Exception ---
+# Generally ignore library files...
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# ...BUT explicitly force Git to track freeglut.dll in the project root 
+# so the game runs immediately when your instructor clones/downloads it.
+!freeglut.dll
+
+# --- System-Specific Trash ---
+# OS-generated files that shouldn't clutter the repo
 .DS_Store
 Thumbs.db
