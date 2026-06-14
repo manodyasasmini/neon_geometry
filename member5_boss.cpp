@@ -10,6 +10,12 @@ namespace Member5_Boss {
     float scaleX = 1.0f, scaleY = 1.0f;
     float spikes[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 
+    // PERIODIC BEHAVIOR STATE
+    float burstTimer = 0.0f;
+    bool stable = false;
+    float phaseTimer = 0.0f;
+    bool burstTriggered = false;
+
     // CUSTOM SHEAR MATRIX
     void applyShear(float shx, float shy) {
         float m[16] = {
@@ -63,6 +69,26 @@ namespace Member5_Boss {
         if (SharedState::bossActive) {
             //? Update internal timer for animations
             localTime += 0.016f;
+            phaseTimer += 0.016f;
+
+            // PERIODIC CYCLE (8 seconds total)
+            if (phaseTimer >= 8.0f) {
+                phaseTimer = 0.0f;
+                burstTriggered = false; // Reset trigger for next cycle
+            }
+
+            // Trigger anomaly burst at 4 seconds
+            if (phaseTimer >= 4.0f && !burstTriggered) {
+                burstTimer = 0.6f;
+                burstTriggered = true;
+            }
+
+            // Freeze into stable square from 5 to 8 seconds
+            if (phaseTimer >= 5.0f && phaseTimer < 8.0f) {
+                stable = true;
+            } else {
+                stable = false;
+            }
 
             // Boss Movement (from original project, slowed down for smooth majesty)
             SharedState::bossX = sin(glutGet(GLUT_ELAPSED_TIME) * (0.0004f * SharedState::level)) * 0.6f;
@@ -73,17 +99,36 @@ namespace Member5_Boss {
                 SharedState::bossAttackTimer = 0;
             }
 
-            // Anomaly Boss Geometry Math
-            shearX = sin(localTime * 1.4f) * 0.45f;
-            shearY = cos(localTime * 1.1f) * 0.45f;
+            if (!stable) {
+                // Anomaly Boss Geometry Math
+                shearX = sin(localTime * 1.4f) * 0.45f;
+                shearY = cos(localTime * 1.1f) * 0.45f;
 
-            scaleX = 1.0f + 0.18f * sin(localTime * 2.0f);
-            scaleY = 1.0f + 0.18f * cos(localTime * 2.6f);
+                scaleX = 1.0f + 0.18f * sin(localTime * 2.0f);
+                scaleY = 1.0f + 0.18f * cos(localTime * 2.6f);
 
-            rotation += 0.4f;
+                // ---- ANOMALY BURST ----
+                if (burstTimer > 0.0f) {
+                    float intensity = burstTimer / 0.6f;
+                    shearX += sin(localTime * 35.0f) * 0.5f * intensity;
+                    shearY += cos(localTime * 35.0f) * 0.5f * intensity;
+                    scaleX *= (1.0f + 0.4f * intensity);
+                    scaleY *= (1.0f - 0.2f * intensity);
+                    burstTimer -= 0.016f;
+                }
 
-            for (int i = 0; i < 8; i++) {
-                spikes[i] = 0.6f + 0.6f * sin(localTime * 3.5f + i * 0.785f);
+                rotation += 0.4f;
+
+                for (int i = 0; i < 8; i++) {
+                    spikes[i] = 0.6f + 0.6f * sin(localTime * 3.5f + i * 0.785f);
+                }
+            } else {
+                // Reset to perfect stable square
+                shearX = 0.0f;
+                shearY = 0.0f;
+                scaleX = 1.0f;
+                scaleY = 1.0f;
+                for (int i = 0; i < 8; i++) spikes[i] = 1.0f;
             }
         }
     }
