@@ -42,7 +42,23 @@
 			<Add library="gdi32" />
 			<Add directory="C:/Program Files/CodeBlocks/MinGW/x86_64-w64-mingw32/lib" />
 		</Linker>
+		<Unit filename="game_engine.cpp" />
+		<Unit filename="game_engine.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="member1_player.cpp" />
+		<Unit filename="member1_player.h" />
+		<Unit filename="member2_swarm.cpp" />
+		<Unit filename="member2_swarm.h" />
+		<Unit filename="member3_lasers.cpp" />
+		<Unit filename="member3_lasers.h" />
+		<Unit filename="member4_grid.cpp" />
+		<Unit filename="member4_grid.h" />
+		<Unit filename="member5_boss.cpp" />
+		<Unit filename="member5_boss.h" />
+		<Unit filename="member6_particles.cpp" />
+		<Unit filename="member6_particles.h" />
+		<Unit filename="neon_geometry.cbp" />
+		<Unit filename="neon_geometry.layout" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
