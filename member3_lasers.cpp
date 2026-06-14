@@ -41,7 +41,7 @@ namespace Member3_Lasers {
 
     void draw() {
         glPointSize(2.5f);
-        for (const auto& p : projectiles) {
+        for (const auto& p : SharedState::projectiles) {
             if (p.active) {
                 if (p.isEnemyWeapon) glColor3f(1.0f, 0.0f, 1.0f);
                 else glColor3f(1.0f, 1.0f, 0.0f);
