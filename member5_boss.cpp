@@ -50,8 +50,8 @@ namespace Member5_Boss {
             Projectile p;
             p.x = SharedState::bossX; p.y = SharedState::bossY;
             float angle = (i * (360 / patterns)) * 3.14159f / 180.0f;
-            p.dx = cos(angle) * (0.02f + SharedState::level * 0.005f);
-            p.dy = sin(angle) * (0.02f + SharedState::level * 0.005f);
+            p.dx = cos(angle) * (0.008f + SharedState::level * 0.002f);
+            p.dy = sin(angle) * (0.008f + SharedState::level * 0.002f);
             p.active = true; p.isEnemyWeapon = true;
             SharedState::projectiles.push_back(p);
         }
@@ -64,8 +64,8 @@ namespace Member5_Boss {
             //? Update internal timer for animations
             localTime += 0.016f;
 
-            // Boss Movement (from original project)
-            SharedState::bossX = sin(glutGet(GLUT_ELAPSED_TIME) * (0.001f * SharedState::level)) * 0.6f;
+            // Boss Movement (from original project, slowed down for smooth majesty)
+            SharedState::bossX = sin(glutGet(GLUT_ELAPSED_TIME) * (0.0004f * SharedState::level)) * 0.6f;
 
             // Attack logic (from original project)
             if (++SharedState::bossAttackTimer > (120 - SharedState::level * 20)) {
@@ -135,7 +135,7 @@ namespace Member5_Boss {
 
                 // Inner pulsing core
                 float corePulse = 0.5f + 0.5f * sin(localTime * 6.0f);
-                drawSquare(0.05f, 1.0f, 1.0f, 1.0f);
+                drawSquare(0.02f + 0.03f * corePulse, 1.0f, 1.0f, 1.0f);
 
                 // Cross-hairs inside (extra detail showing shear effect)
                 glColor3f(1.0f, 1.0f, 1.0f);

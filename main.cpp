@@ -15,6 +15,8 @@
 #include "member6_particles.h"
 
 int bossWaveTimer = 0;
+bool keyState[256] = { false };
+bool specialKeyState[256] = { false };
 
 void drawText(float x, float y, const std::string& s) {
     glRasterPos2f(x, y);
@@ -43,21 +45,25 @@ void applyScreenShake() {
 
 void startNextLevel() {
     SharedState::level++; SharedState::wave = 1;
-    SharedState::bossActive = true;
+    SharedState::bossActive = (SharedState::level >= 3);
     SharedState::bossMaxHP = 150.0f + (SharedState::level * 50.0f);
     SharedState::bossHP = SharedState::bossMaxHP;
     SharedState::playerX = 0; SharedState::playerY = 0;
     SharedState::projectiles.clear(); SharedState::enemies.clear();
     SharedState::gameState = PLAYING; bossWaveTimer = 0;
+    std::fill(std::begin(keyState), std::end(keyState), false);
+    std::fill(std::begin(specialKeyState), std::end(specialKeyState), false);
     Member2_Swarm::spawnWave();
 }
 
 void restartGame() {
     SharedState::score = 0; SharedState::lives = 5; SharedState::level = 1; SharedState::wave = 1;
-    SharedState::bossActive = true; SharedState::bossMaxHP = 150.0f; SharedState::bossHP = 150.0f;
+    SharedState::bossActive = (SharedState::level >= 3); SharedState::bossMaxHP = 150.0f; SharedState::bossHP = 150.0f;
     SharedState::playerX = 0; SharedState::playerY = 0;
     SharedState::projectiles.clear(); SharedState::enemies.clear();
     SharedState::gameState = PLAYING; bossWaveTimer = 0;
+    std::fill(std::begin(keyState), std::end(keyState), false);
+    std::fill(std::begin(specialKeyState), std::end(specialKeyState), false);
     Member2_Swarm::spawnWave();
 }
 
@@ -131,6 +137,13 @@ void update(int) {
     else if (SharedState::gameState == PLAYING) {
         if (SharedState::invulnTimer > 0) SharedState::invulnTimer--;
 
+        // Smooth continuous movement using registered key states
+        float moveSpeed = 0.015f;
+        if (keyState['w'] || specialKeyState[GLUT_KEY_UP]) SharedState::playerY += moveSpeed;
+        if (keyState['s'] || specialKeyState[GLUT_KEY_DOWN]) SharedState::playerY -= moveSpeed;
+        if (keyState['a'] || specialKeyState[GLUT_KEY_LEFT]) SharedState::playerX -= moveSpeed;
+        if (keyState['d'] || specialKeyState[GLUT_KEY_RIGHT]) SharedState::playerX += moveSpeed;
+
         if (SharedState::isDashing) {
             SharedState::playerX += SharedState::dashDx; SharedState::playerY += SharedState::dashDy;
             if (--SharedState::dashTimer <= 0) SharedState::isDashing = false;
@@ -203,21 +216,24 @@ void update(int) {
         for (auto& e : SharedState::enemies) if (e.x < 2) cleared = false;
         
         bossWaveTimer++;
-        if (SharedState::wave == 1) {
-            // Wave 1: 3 times. Active 180 frames (~3s), inactive 180 frames (~3s)
-            SharedState::bossActive = (bossWaveTimer < 1080) && ((bossWaveTimer % 360) < 180);
-        } else if (SharedState::wave == 2) {
-            // Wave 2: 3 times slightly much time. Active 360 frames (~6s), inactive 180 frames (~3s)
-            SharedState::bossActive = (bossWaveTimer < 1620) && ((bossWaveTimer % 540) < 360);
-        } else if (SharedState::wave == 3) {
+        if (SharedState::level >= 3) {
             SharedState::bossActive = true;
-            if (SharedState::bossHP > 0) cleared = false; // Wave 3 doesn't clear until boss dies
+            if (SharedState::wave == 3 && SharedState::bossHP > 0) {
+                cleared = false; // Wave 3 doesn't clear until boss dies
+            }
+        } else {
+            SharedState::bossActive = false;
         }
 
         if (cleared && SharedState::gameState == PLAYING) {
-            SharedState::wave++;
-            bossWaveTimer = 0; // Reset timer for next wave
-            if (SharedState::wave <= 3) Member2_Swarm::spawnWave();
+            if (SharedState::level < 3 && SharedState::wave == 3) {
+                SharedState::gameState = LEVEL_TRANSITION;
+                SharedState::invulnTimer = 0;
+            } else {
+                SharedState::wave++;
+                bossWaveTimer = 0; // Reset timer for next wave
+                if (SharedState::wave <= 3) Member2_Swarm::spawnWave();
+            }
         }
     }
     glutPostRedisplay(); glutTimerFunc(16, update, 0);
@@ -241,17 +257,32 @@ void keyboard(unsigned char key, int, int) {
         if (key == 'r' || key == 'R') restartGame();
         if (key == 27) exit(0); return;
     }
-    float s = 0.04f;
-    if (key == 'w') SharedState::playerY += s;
-    if (key == 's') SharedState::playerY -= s;
-    if (key == 'a') SharedState::playerX -= s;
-    if (key == 'd') SharedState::playerX += s;
+    
+    unsigned char lowerKey = (key >= 'A' && key <= 'Z') ? (key - 'A' + 'a') : key;
+    keyState[lowerKey] = true;
 
-    if (key == ' ' && !SharedState::isDashing) {
+    if (key == ' ' && !SharedState::isDashing && SharedState::gameState == PLAYING) {
         SharedState::isDashing = true; SharedState::dashTimer = 10;
         float dx = SharedState::mouseGL_X - SharedState::playerX, dy = SharedState::mouseGL_Y - SharedState::playerY;
         float len = sqrt(dx*dx + dy*dy);
         if (len > 0) { SharedState::dashDx = (dx/len) * 0.08f; SharedState::dashDy = (dy/len) * 0.08f; }
+    }
+}
+
+void keyboardUp(unsigned char key, int, int) {
+    unsigned char lowerKey = (key >= 'A' && key <= 'Z') ? (key - 'A' + 'a') : key;
+    keyState[lowerKey] = false;
+}
+
+void specialKeys(int key, int, int) {
+    if (key >= 0 && key < 256) {
+        specialKeyState[key] = true;
+    }
+}
+
+void specialKeysUp(int key, int, int) {
+    if (key >= 0 && key < 256) {
+        specialKeyState[key] = false;
     }
 }
 
@@ -264,7 +295,9 @@ int main(int argc, char** argv) {
     glutCreateWindow("Neon Geometry - Master Build");
     glClearColor(0.02f, 0.02f, 0.05f, 1);
     glutDisplayFunc(display); glutReshapeFunc(reshape);
-    glutKeyboardFunc(keyboard); glutMouseFunc(mouseClick);
+    glutKeyboardFunc(keyboard); glutKeyboardUpFunc(keyboardUp);
+    glutSpecialFunc(specialKeys); glutSpecialUpFunc(specialKeysUp);
+    glutMouseFunc(mouseClick);
     glutPassiveMotionFunc(passiveMouse); glutMotionFunc(activeMouse);
     glutTimerFunc(16, update, 0);
     glutMainLoop();

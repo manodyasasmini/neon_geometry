@@ -21,6 +21,8 @@ namespace Member6_Particles {
     }
 
     void draw() {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glPointSize(4.0f);
         for (const auto& b : activeBursts) {
             glColor4f(1.0f, 0.6f, 0.1f, b.life);
@@ -31,5 +33,6 @@ namespace Member6_Particles {
             glEnd();
         }
         glPointSize(1.0f);
+        glDisable(GL_BLEND);
     }
 }

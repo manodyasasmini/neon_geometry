@@ -53,11 +53,15 @@ namespace Member4_Grid {
         // Isolate matrix stack states to protect peripheral engine layers from local transforms
         glPushMatrix();
 
-        // Compute aggregate horizontal shear coefficient
-        // Combines static player coordinates with transient kinetic dash forces
-        float baseShear = -SharedState::playerX * 0.06f;
+        // Apply dynamic parallax scrolling effect relative to player position
+        // This simulates background depth as the camera tracks the player.
+        glTranslatef(-SharedState::playerX * 0.12f, -SharedState::playerY * 0.12f, 0.0f);
+
+        // Compute horizontal shear coefficient (warp speed effect)
+        // Only active during a dash to prevent glitchy static skew under normal movement.
+        float baseShear = 0.0f;
         if (SharedState::isDashing) {
-            baseShear += SharedState::dashDx * dynamicShearIntensity * 2.0f;
+            baseShear = SharedState::dashDx * dynamicShearIntensity * 2.0f;
         }
 
         // Custom 4x4 Homogeneous Transformation Matrix
