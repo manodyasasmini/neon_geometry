@@ -1,4 +1,3 @@
-
 # Neon Geometry: Protocol
 
 A minimalistic, cinematic tech-aesthetic 2D survival arena shooter built from scratch in C++ using OpenGL and the GLUT utility toolkit. This repository showcases structural computer graphics fundamentals distributed across a 6-member engineering team.
@@ -9,12 +8,12 @@ A minimalistic, cinematic tech-aesthetic 2D survival arena shooter built from sc
 
 To avoid workflow conflicts, the engine architecture isolates individual math pipelines into standalone modular codebases:
 
-* **Member 1 (Player Core):** Manages compound matrix operations (`glTranslate`, `glRotate`, `glScale`) driving the primary entity and local dynamic thruster oscillations.
-* **Member 2 (The Swarm):** Implements automated targeted vector pathways enabling AI groups to seek and translate smoothly toward the player's real-time coordinate state.
+* **Member 1 (Player Core):** Manages compound matrix operations (`glTranslate`, `glRotate`, `glScale`) driving the primary entity and local dynamic thruster oscillations. Optimized with state-based continuous key tracking for fluid movement.
+* **Member 2 (The Swarm):** Implements automated targeted vector pathways enabling AI groups to seek and translate smoothly toward the player's real-time coordinate state. Speed factors balanced for smoother gameplay.
 * **Member 3 (Laser Projectiles):** Bypasses basic hardware line-loops to execute an academic **Digital Differential Analyzer (DDA) / Bresenham's rasterization algorithm** plotting high-speed bullet points manually.
-* **Member 4 (The Pulse Grid):** Owns background projection using customized Row-Major 4x4 Shearing Matrices to map depth tilt along with a rhythmic heartbeat scaling wrapper.
-* **Member 5 (The Anomaly Boss):** Orchestrates procedural parametric equations (`sin`/`cos`) deforming geometry vertices dynamically over time to create an unstable morphing boss variant.
-* **Member 6 (Particle Explosions):** Deploys a radial particle physics engine translating fragments outward along randomized vector paths while handling automatic alpha-decay fade tracking.
+* **Member 4 (The Pulse Grid):** Owns background projection. Combines a smooth dynamic parallax scrolling effect (`glTranslate` relative to player movement) with custom Row-Major 4x4 Shearing Matrices to map dynamic warp tilt exclusively during high-speed dashes.
+* **Member 5 (The Anomaly Boss):** Orchestrates procedural parametric equations (`sin`/`cos`) deforming geometry vertices dynamically over time to create an unstable morphing boss variant. The boss becomes active and visible starting at Level 3, and features an animated pulsing inner core.
+* **Member 6 (Particle Explosions):** Deploys a radial particle physics engine translating fragments outward along randomized vector paths. Enabled OpenGL alpha-blending (`GL_BLEND`) to support proper, smooth alpha-decay fade tracking.
 
 ---
 
@@ -30,7 +29,6 @@ neon_geometry/
 ├── member4_grid.h/.cpp      # Manual 16-element shearing matrix background
 ├── member5_boss.h/.cpp      # Parametric geometric mesh vertex morpher
 └── member6_particles.h/.cpp # Visual hitstop-triggered radial particle burster
-
 ```
 
 ---
@@ -46,9 +44,8 @@ Ensure your local environment has a working C++ compiler (GCC/MinGW, Clang, or M
 Open a terminal workspace on your computer and download the repository:
 
 ```bash
-git clone [https://github.com/manodyasasmini/neon_geometry.git](https://github.com/manodyasasmini/neon_geometry.git)
+git clone https://github.com/manodyasasmini/neon_geometry.git
 cd neon_geometry
-
 ```
 
 ---
@@ -73,34 +70,30 @@ If compiling strictly via standard command-line tools, you must explicitly decla
 ```bash
 g++ *.cpp -lGL -lGLU -lglut -o neon_geometry
 ./neon_geometry
-
 ```
-
 
 * **macOS (Homebrew FreeGLUT framework):**
 ```bash
 g++ *.cpp -framework OpenGL -framework GLUT -o neon_geometry
 ./neon_geometry
-
 ```
-
 
 * **Windows (MinGW / MSYS2 toolchain environment):**
 ```bash
 g++ *.cpp -lfreeglut -lopengl32 -lglu32 -o neon_geometry
 ./neon_geometry.exe
-
 ```
 
-
+*If using a specific Code::Blocks MinGW compiler location on Windows, compile directly using:*
+```powershell
+g++ *.cpp -o neon_geometry.exe -I"C:/Program Files/CodeBlocks/MinGW/x86_64-w64-mingw32/include" -L"C:/Program Files/CodeBlocks/MinGW/x86_64-w64-mingw32/lib" -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32
+```
 
 ---
 
 ## 🎮 System Control Mapping
 
-* `W`, `A`, `S`, `D` — Arena Translation Vector Movement
+* `W`, `A`, `S`, `D` / `Arrow Keys` — Arena Translation Vector Movement (Case-insensitive & Butter-smooth)
 * `Spacebar` — Execute Directional High-Speed Dash
 * `Mouse Movement` — Player Core Orientation Rotation Target
 * `Left Click` — Execute Custom Algorithmic Laser Discharge Matrix
-
-```
