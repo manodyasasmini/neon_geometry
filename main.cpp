@@ -214,7 +214,7 @@ void update(int) {
 
         bool cleared = true;
         for (auto& e : SharedState::enemies) if (e.x < 2) cleared = false;
-        
+
         bossWaveTimer++;
         if (SharedState::level >= 3) {
             SharedState::bossActive = true;
@@ -255,9 +255,10 @@ void keyboard(unsigned char key, int, int) {
     if (SharedState::gameState == START_MENU && key == ' ') { restartGame(); return; }
     if (SharedState::gameState == GAME_OVER || SharedState::gameState == VICTORY) {
         if (key == 'r' || key == 'R') restartGame();
-        if (key == 27) exit(0); return;
+        if (key == 27) exit(0);
+        return;
     }
-    
+
     unsigned char lowerKey = (key >= 'A' && key <= 'Z') ? (key - 'A' + 'a') : key;
     keyState[lowerKey] = true;
 
